@@ -1,0 +1,166 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "baseName": {
+            "defaultValue": "shortenertool",
+            "type": "string",
+            "metadata": {
+                "description": "Name used as base-template to name the resources to be deployed in Azure."
+            }
+        },
+        "ExpireOn": {
+            "type": "string",
+            "defaultValue": "[utcNow('yyyy-MM-dd')]",
+            "metadata": {
+                "description": "Just a text value (format: yyyy-MM-dd) that express when it is safe to delete these resources"
+            }
+        },
+        "OwnerName": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Owner of this deployment, person to contact for question."
+            }
+        }
+    },
+    "variables": {
+        "suffix": "[substring(toLower(uniqueString(resourceGroup().id, resourceGroup().location)),0,5)]",
+        "funcAppName": "[toLower(concat(parameters('baseName'), '-', variables('suffix'), '-fa'))]",
+        "storageAccountName": "[tolower(concat(substring(parameters('baseName'), 0, min(length(parameters('baseName')),16)), variables('suffix'), 'sa'))]",
+        "funcHhostingPlanName": "[concat(substring(parameters('baseName'), 0, min(length(parameters('baseName')),13)), '-', variables('suffix'), '-asp')]",
+        "insightsAppName": "[concat(substring(parameters('baseName'), 0, min(length(parameters('baseName')),13)), '-', variables('suffix'), '-ai')]",
+        "packageUri": "https://github.com/FBoucher/ZipDeploy-AzFunc/releases/download/v1/ZipDeploypackage-v1.zip"
+    },
+    "resources": [
+        {
+            "apiVersion": "2022-03-01",
+            "name": "[variables('funcAppName')]",
+            "type": "Microsoft.Web/sites",
+            "kind": "functionapp",
+            "location": "[resourceGroup().location]",
+            "tags": {
+                "Owner": "[parameters('OwnerName')]",
+                "ExpireOn": "[parameters('ExpireOn')]"
+            },
+            "dependsOn": [
+                "[concat('microsoft.insights/components/', variables('insightsAppName'))]",
+                "[concat('Microsoft.Web/serverfarms/', variables('funcHhostingPlanName'))]",
+                "[concat('Microsoft.Storage/storageAccounts/',variables('storageAccountName'))]"
+            ],
+            "properties": {
+                "name": "[variables('funcAppName')]",
+                "siteConfig": {
+                    "appSettings": [
+                        {
+                            "name": "FUNCTIONS_EXTENSION_VERSION",
+                            "value": "~4"
+                        },
+                        {
+                            "name": "FUNCTIONS_WORKER_RUNTIME",
+                            "value": "dotnet-isolated"
+                        },
+                        {
+                            "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
+                            "value": "[reference(concat('microsoft.insights/components/', variables('insightsAppName')), '2015-05-01').InstrumentationKey]"
+                        },
+                        {
+                            "name": "APPLICATIONINSIGHTS_CONNECTION_STRING",
+                            "value": "[reference(resourceId('Microsoft.Insights/components', variables('insightsAppName')), '2020-02-02').ConnectionString]"
+                        },
+                        {
+                            "name": "AzureWebJobsStorage",
+                            "value": "[format('DefaultEndpointsProtocol=https;AccountName={0};EndpointSuffix={1};AccountKey={2}', variables('storageAccountName'), environment().suffixes.storage, listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName')), '2021-09-01').keys[0].value)]"
+                        },
+                        {
+                            "name": "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING",
+                            "value": "[format('DefaultEndpointsProtocol=https;AccountName={0};EndpointSuffix={1};AccountKey={2}', variables('storageAccountName'), environment().suffixes.storage, listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName')), '2021-09-01').keys[0].value)]"
+
+                        },
+                        {
+                            "name": "WEBSITE_CONTENTSHARE",
+                            "value": "[concat(variables('funcAppName'), 'ba91')]"
+                        },
+                        {
+                            "name": "DataStorage",
+                            "value": "[concat('DefaultEndpointsProtocol=https;AccountName=',variables('storageAccountName'),';AccountKey=',listKeys(resourceId('Microsoft.Storage/storageAccounts',variables('storageAccountName')), '2019-06-01').keys[0].value,';EndpointSuffix=','core.windows.net')]"
+                        },
+                        {
+                            "name": "WEBSITE_RUN_FROM_PACKAGE",
+                            "value": "1"
+                        }
+                    ]
+                },
+                "serverFarmId": "[resourceId('Microsoft.Web/serverfarms/', variables('funcHhostingPlanName'))]",
+                "netFrameworkVersion": "v8.0",
+                "clientAffinityEnabled": true
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/extensions",
+            "apiVersion": "2021-02-01",
+            "name": "[format('{0}/ZipDeploy', variables('funcAppName'))]",
+            "properties": {
+                "packageUri": "[variables('packageUri')]",
+                "appOffline": true
+            },
+            "dependsOn": [
+                "[concat('Microsoft.Web/sites/', variables('funcAppName'))]"
+            ]
+        },
+        {
+            "apiVersion": "2021-03-01",
+            "name": "[variables('funcHhostingPlanName')]",
+            "type": "Microsoft.Web/serverfarms",
+            "location": "[resourceGroup().location]",
+            "kind": "",
+            "tags": {
+                "Owner": "[parameters('OwnerName')]",
+                "ExpireOn": "[parameters('ExpireOn')]"
+            },
+            "properties": {
+                "name": "[variables('funcHhostingPlanName')]",
+                "computeMode": "Dynamic"
+            },
+            "sku": {
+                "Tier": "Dynamic",
+                "Name": "Y1"
+            }
+        },
+        {
+            "apiVersion": "2015-05-01",
+            "name": "[variables('insightsAppName')]",
+            "type": "Microsoft.Insights/components",
+            "location": "[resourceGroup().location]",
+            "tags": {
+                "Owner": "[parameters('OwnerName')]",
+                "ExpireOn": "[parameters('ExpireOn')]"
+            },
+            "kind": "",
+            "properties": {
+                "Application_Type": "web",
+                "ApplicationId": "[variables('funcAppName')]",
+                "Request_Source": "rest"
+            }
+        },
+        {
+            "type": "Microsoft.Storage/storageAccounts",
+            "name": "[variables('storageAccountName')]",
+            "location": "[resourceGroup().location]",
+            "apiVersion": "2019-06-01",
+            "sku": {
+                "name": "Standard_LRS",
+                "tier": "Standard"
+            },
+            "tags": {
+                "displayName": "[variables('storageAccountName')]",
+                "Owner": "[parameters('OwnerName')]",
+                "ExpireOn": "[parameters('ExpireOn')]"
+            },
+            "properties": {
+                "supportsHttpsTrafficOnly": true
+            }
+        }
+    ],
+    "outputs": {}
+}
