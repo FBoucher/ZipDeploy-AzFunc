@@ -17,5 +17,5 @@ There is also a video on [YouTube](https://www.youtube.com/watch?v=LHJTUvjw9po).
 
 ## Using Azure Developer CLI (AZD) and Bicep
 
-You can also deploy the function using AZD command. From the folder *deployment* run the command `azd init` then `azd up` to deploy the function. This will use the [main.bicep](deployment/main.bicep) file to deploy the function.
+You can also deploy the function using AZD command. From the folder *deployment* run the command `azd init` then `azd up` to deploy the function. This will use the [main.bicep](deployment/infra/main.bicep) file to deploy the function.
 
