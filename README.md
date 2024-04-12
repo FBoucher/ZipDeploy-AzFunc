@@ -12,4 +12,10 @@ To learn more about how the tempate was done refer to the blog post on [How to D
 
 There is also a video on [YouTube](https://www.youtube.com/watch?v=LHJTUvjw9po).
 
-[![YouTube preview](docs/images/c5m-ep70.gif)](https://www.youtube.com/watch?v=LHJTUvjw9po)
+[![YouTube preview](docs/images/c5m-ep70b.gif)](https://www.youtube.com/watch?v=LHJTUvjw9po)
+
+
+## Using Azure Developer CLI (AZD) and Bicep
+
+You can also deploy the function using AZD command. From the folder *deployment* run the command `azd init` then `azd up` to deploy the function. This will use the [main.bicep](deployment/infra/main.bicep) file to deploy the function.
+
