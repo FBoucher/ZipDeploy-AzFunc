@@ -265,3 +265,6 @@ __pycache__/
 
 # Pubished folder 
 **/out/
+
+# .Azure
+**/.azure/

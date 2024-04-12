@@ -29,7 +29,7 @@ var resourceToken = toLower(uniqueString(subscription().id, environmentName, loc
 
 var functionAppName = '${abbrs.webSitesFunctions}${appName}${resourceToken}'
 var storageAccountName = '${abbrs.storageStorageAccounts}${toLower(substring(appName, 0, min(length(appName), 9)))}${resourceToken}'
-var packageUri = 'https://github.com/fboucheros/learn-azd/releases/download/v0.2-beta2/ZipFiles-test.zip'
+var packageUri = 'https://github.com/FBoucher/ZipDeploy-AzFunc/releases/download/v1/ZipDeploy-package-v1.zip'
 
 
 resource rg 'Microsoft.Resources/resourceGroups@2021-04-01' = {
