@@ -8,7 +8,7 @@ By clicking the button below, you will deploy a .NET 8 Azure Isolated Function i
 
 [![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FFBoucher%2FZipDeploy-AzFunc%2Fmain%2Fdeployment%2Fazuredeploy.json)
 
-To learn more about how the tempate was done refer to the blog post on [How to Deploy a .NET isolated Azure Function using Zip Deploy in One-Click](https://www.frankysnotes.com/2024/04/how-to-deploy-net-isolated-azure.html) on frankysnotes.com.
+To learn more about how the template was done refer to the blog post on [How to Deploy a .NET isolated Azure Function using Zip Deploy in One-Click](https://www.frankysnotes.com/2024/04/how-to-deploy-net-isolated-azure.html) on frankysnotes.com.
 
 There is also a video on [YouTube](https://www.youtube.com/watch?v=LHJTUvjw9po).
 
